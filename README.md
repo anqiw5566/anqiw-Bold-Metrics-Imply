@@ -7,4 +7,4 @@ sample output dataset: `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hou
 #### STEP 2
 applied aggregate functions / logics on enriched datasets
 
-sample output dataset: `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hourly_090814_agg`
+sample output dataset: `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hourly_080914_agg`
