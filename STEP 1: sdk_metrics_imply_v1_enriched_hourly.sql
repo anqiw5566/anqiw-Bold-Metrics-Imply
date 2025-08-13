@@ -15,7 +15,7 @@ IF(n.body.notification.type = 'burl',1,0) AS notif_is_burl,
 
 --- operative ---
 op.cinfo.adtype AS op_show_time_ad_type,
-op.adfmt AS op_show_time_adFormat,
+op.adfmt AS op_show_time_ad_format,
 -- op.ctyp AS op_show_time_campaign_type,
 op.cinfo.cid AS op_show_time_campaign_id,
 op.cinfo.audid AS op_show_time_audience_id,
@@ -42,7 +42,7 @@ AND TIMESTAMP_TRUNC(o._lapio_submit_time, HOUR) = "2025-08-09 14:00:00"
 
 LEFT JOIN `unity-ai-data-prd.ads_hb_raw.ads_hb_notification_enriched_v3` n
 ON n.body.notification.exchangeAuctionId = o.auction_id 
--- AND DATE(n.submit_date) = "2025-08-09"
+AND DATE(n.submit_date) = "2025-08-09"
 AND TIMESTAMP_TRUNC(context.pipeline_context.submit_time, HOUR) = "2025-08-09 14:00:00"
 
 LEFT JOIN `unity-data-ads-prd.serversidemeta.operative_event_v1` op
@@ -61,9 +61,9 @@ ON game.developer_id = dev.developer_id
 
 WHERE 1=1
 AND submit_hour = "2025-08-09 14:00:00"
-AND DATE(n.submit_date) = "2025-08-09"
-AND DATE(o._lapio_submit_time) =  "2025-08-09"
-AND DATE(op._lapio_submit_time) = "2025-08-09"
+-- AND DATE(n.submit_date) = "2025-08-09"
+-- AND DATE(o._lapio_submit_time) =  "2025-08-09"
+-- AND DATE(op._lapio_submit_time) = "2025-08-09"
 -- AND m.impression_opportunity_id is not null
 -- AND m.game_session_id >0
 -- AND m.is_header_bidding
