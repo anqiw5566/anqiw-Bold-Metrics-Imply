@@ -3,24 +3,24 @@ SELECT
 m.* EXCEPT (metric_state,scar,metric_type),
 
 --- hb notification ---
-o.auction_id AS notif_load_time_auid, 
-n.body.request.bid.DSPID AS notif_load_time_dsp_id,
-n.body.request.bid.contentType AS notif_load_time_content_type,
-n.body.request.placement.adFormat AS notif_load_time_ad_format,
-n.body.request.bid.campaignID AS notif_load_time_campaign_id,
-n.body.request.bid.creativeID AS notif_load_time_creative_pack_id,
+o.auction_id AS notif_load_auid, 
+n.body.request.bid.DSPID AS notif_load_dsp_id,
+n.body.request.bid.contentType AS notif_load_content_type,
+n.body.request.placement.adFormat AS notif_load_ad_format,
+n.body.request.bid.campaignID AS notif_load_campaign_id,
+n.body.request.bid.creativeID AS notif_load_creative_pack_id,
 IF(n.body.notification.type = 'nurl',1,0) AS notif_is_nurl,
 IF(n.body.notification.type = 'lurl',1,0) AS notif_is_lurl,
 IF(n.body.notification.type = 'burl',1,0) AS notif_is_burl,
 
 --- operative ---
-op.cinfo.adtype AS op_show_time_ad_type,
-op.adfmt AS op_show_time_ad_format,
+op.cinfo.adtype AS op_show_ad_type,
+op.adfmt AS op_show_ad_format,
 -- op.ctyp AS op_show_time_campaign_type,
-op.cinfo.cid AS op_show_time_campaign_id,
-op.cinfo.audid AS op_show_time_audience_id,
-op.cinfo.cpackid AS op_show_time_creative_pack_id,
-op.cinfo.ucid AS op_show_time_creative_id,
+op.cinfo.cid AS op_show_campaign_id,
+op.cinfo.audid AS op_show_audience_id,
+op.cinfo.cpackid AS op_show_creative_pack_id,
+op.cinfo.ucid AS op_show_creative_id,
 
 --- creative ---
 JSON_EXTRACT_SCALAR(file_metadata, '$.fileSize') file_size,
