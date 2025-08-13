@@ -9,6 +9,9 @@ n.body.request.bid.contentType AS notif_load_time_content_type,
 n.body.request.placement.adFormat AS notif_load_time_ad_format,
 n.body.request.bid.campaignID AS notif_load_time_campaign_id,
 n.body.request.bid.creativeID AS notif_load_time_creative_pack_id,
+IF(n.body.notification.type = 'nurl',1,0) AS notif_is_nurl,
+IF(n.body.notification.type = 'lurl',1,0) AS notif_is_lurl,
+IF(n.body.notification.type = 'burl',1,0) AS notif_is_burl,
 
 --- operative ---
 op.cinfo.adtype AS op_show_time_ad_type,
@@ -21,10 +24,11 @@ op.cinfo.ucid AS op_show_time_creative_id,
 
 --- creative ---
 JSON_EXTRACT_SCALAR(file_metadata, '$.fileSize') file_size,
+c.duration AS video_duration_seconds,
 
 --- developers & games ---
 dev.developer_id,
-dev.name as developer_name,
+dev.name AS developer_name,
 game.organization_id,
 game.core_organization
 
