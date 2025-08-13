@@ -103,7 +103,7 @@ SELECT
     ANY_VALUE(source_game_id) source_game_id,
     ANY_VALUE(mediation_name) mediation_name,
     ANY_VALUE(mediation_version) mediation_version,
-    ANY_VALUE(IF(is_bold = 'gwv1','bold',IF(is_bold ='gwl','legacy',null))) is_bold,
+    'bold' is_bold,
     ANY_VALUE(country) country,
     ANY_VALUE(iso_country) iso_country,
     ANY_VALUE(developer_id) developer_id,
@@ -113,27 +113,26 @@ SELECT
     ANY_VALUE(device_make) device_make,
     ANY_VALUE(device_model) device_model,
     ANY_VALUE(os_version) os_version,
-    ANY_VALUE(ett) AS ett,
-    
+    ANY_VALUE(ett) AS ett,   
 
 --- hb notification ---
-    ANY_VALUE(notif_load_time_auid) notif_load_auid,
-    ANY_VALUE(notif_load_time_dsp_id) notif_load_dsp_id,
-    ANY_VALUE(notif_load_time_content_type) notif_load_content_type,
-    ANY_VALUE(notif_load_time_ad_format) notif_load_ad_format,
-    ANY_VALUE(notif_load_time_campaign_id) notif_load_campaign_id,
-    ANY_VALUE(notif_load_time_creative_pack_id) notif_load_creative_pack_id,
+    ANY_VALUE(notif_load_auid) notif_load_auid,
+    ANY_VALUE(notif_load_dsp_id) notif_load_dsp_id,
+    ANY_VALUE(notif_load_content_type) notif_load_content_type,
+    ANY_VALUE(notif_load_ad_format) notif_load_ad_format,
+    ANY_VALUE(notif_load_campaign_id) notif_load_campaign_id,
+    ANY_VALUE(notif_load_creative_pack_id) notif_load_creative_pack_id,
     MAX(notif_is_nurl)notif_is_nurl,
     MAX(notif_is_lurl)notif_is_lurl,
     MAX(notif_is_burl)notif_is_burl,
 
 --- operative ---
-    ANY_VALUE(op_show_time_ad_type) op_show_ad_type,
-    ANY_VALUE(op_show_time_adFormat) op_show_adFormat,
-    ANY_VALUE(op_show_time_campaign_id) op_show_campaign_id,
-    ANY_VALUE(op_show_time_audience_id) op_show_audience_id,
-    ANY_VALUE(op_show_time_creative_pack_id) op_show_creative_pack_id,
-    ANY_VALUE(op_show_time_creative_id) op_show_creative_id,
+    ANY_VALUE(op_show_ad_type) op_show_ad_type,
+    ANY_VALUE(op_show_ad_format) op_show_ad_format,
+    ANY_VALUE(op_show_campaign_id) op_show_campaign_id,
+    ANY_VALUE(op_show_audience_id) op_show_audience_id,
+    ANY_VALUE(op_show_creative_pack_id) op_show_creative_pack_id,
+    ANY_VALUE(op_show_creative_id) op_show_creative_id,
 
 --- creative ---
     ANY_VALUE(file_size) file_size_byte,
@@ -177,4 +176,99 @@ SELECT
     MAX(IF(metric = 'native_webview_terminated', 1, 0)) AS webview_terminated,
 
 FROM base
+WHERE is_bold = 'gwv1'
 GROUP BY submit_hour,impression_opportunity_id,game_session_id
+UNION ALL
+SELECT
+    submit_hour,
+    impression_opportunity_id,
+    game_session_id,
+    placement_id,
+    ad_format,
+    webview_version,
+    ad_type,
+    campaign_type,
+    content_type,
+    show_campaign_type,
+    show_content_type,
+    is_header_bidding,
+    platform platform,
+    sdk_version sdk_version,
+    source_game_id source_game_id,
+    mediation_name mediation_name,
+    mediation_version mediation_version,
+    'legacy' is_bold,
+    country country,
+    iso_country iso_country,
+    developer_id developer_id,
+    developer_name developer_name,
+    organization_id organization_id,
+    core_organization core_organization,
+    device_make device_make,
+    device_model device_model,
+    os_version os_version,
+    ett AS ett,   
+
+--- hb notification ---
+    NULL AS notif_load_auid,
+    NULL AS notif_load_dsp_id,
+    NULL AS notif_load_content_type,
+    NULL AS notif_load_ad_format,
+    NULL AS notif_load_campaign_id,
+    NULL AS notif_load_creative_pack_id,
+    NULL AS notif_is_nurl,
+    NULL AS notif_is_lurl,
+    NULL AS notif_is_burl,
+
+--- operative ---
+    NULL AS op_show_ad_type,
+    NULL AS op_show_ad_format,
+    NULL AS op_show_campaign_id,
+    NULL AS op_show_audience_id,
+    NULL AS op_show_creative_pack_id,
+    NULL AS op_show_creative_id,
+
+--- creative ---
+    NULL AS file_size_byte,
+    NULL AS file_size_mb,
+    NULL AS video_duration_seconds,
+    NULL AS video_length_bucket,
+
+--- metrics_v1 ---    
+    ANY_VALUE(IF(metric = 'native_load_failure_time', reason_debug, NULL)) AS load_error_reason_debug,
+    ANY_VALUE(IF(metric = 'native_show_failure_time', reason_debug, NULL)) AS show_error_reason_debug,
+    ANY_VALUE(IF(metric = 'native_show_failure_time', message, NULL)) AS show_error_message,
+    ANY_VALUE(IF(metric = 'native_load_failure_time', message, NULL)) AS load_error_message,
+    ARRAY_AGG(DISTINCT error_message IGNORE NULLS) AS error_messages,
+
+    SUM(IF(metric = 'native_initialization_started', 1, 0)) AS native_initialization_started,
+    SUM(IF(metric = 'native_initialize_task_success_time', 1, 0)) AS native_initialize_task_success_time,
+    SUM(IF(metric = 'native_initialize_task_failure_time', 1, 0)) AS native_initialize_task_failure_time,
+
+    SUM(IF(metric = 'native_load_started', 1, 0)) AS native_load_started,
+    SUM(IF(metric IN ('native_load_failure_time', 'native_load_time_failure'), 1, 0)) AS native_load_failure_time,
+    SUM(IF(metric IN ('native_load_success_time', 'native_load_time_success'), 1, 0)) AS native_load_success_time,
+    SUM(IF(metric = 'native_load_started_ad_viewer', 1, 0)) AS native_load_started_ad_viewer,
+    SUM(IF(metric = 'native_load_config_success_time', 1, 0)) AS native_load_config_success_time,
+    SUM(IF(metric = 'native_load_config_failure_time', 1, 0)) AS native_load_config_failure_time,
+
+    SUM(IF(metric = 'native_show_started', 1, 0)) AS native_show_started,
+    SUM(IF(metric IN ('native_show_success_time', 'native_show_time_success'), 1, 0)) AS native_show_success_time,
+    SUM(IF(metric IN ('native_show_failure_time', 'native_show_time_failure'), 1, 0)) AS native_show_failure_time,
+
+    SUM(IF(metric = 'ad_viewer_native_show_call', 1, 0)) AS ad_viewer_native_show_call,
+    SUM(IF(metric = 'ad_viewer_ad_content_loaded', 1, 0)) AS ad_viewer_ad_content_loaded,
+    SUM(IF(metric = 'ad_viewer_ad_content_start', 1, 0)) AS ad_viewer_ad_content_start,
+    SUM(IF(metric = 'ad_viewer_ad_content_ended', 1, 0)) AS ad_viewer_ad_content_ended,
+    SUM(IF(metric = 'ad_viewer_ad_content_rewarded', 1, 0)) AS ad_viewer_ad_content_rewarded,
+    SUM(IF(metric = 'ad_viewer_ad_content_skip', 1, 0)) AS ad_viewer_ad_content_skip,
+    SUM(IF(metric = 'native_show_started_ad_viewer', 1, 0)) AS native_show_started_ad_viewer,
+    SUM(IF(metric = 'native_show_wv_started', 1, 0)) AS native_show_wv_started,
+
+    SUM(IF(metric = 'native_load_cache_success_time', 1, 0)) AS native_load_cache_success_time_count,
+    SUM(IF(metric = 'native_load_cache_failure_time', 1, 0)) AS native_load_cache_failure_time_count,
+    SUM(IF(metric = 'native_webview_terminated', 1, 0)) AS webview_terminated,
+
+FROM base
+WHERE is_bold = 'gwl'
+GROUP BY ALL
