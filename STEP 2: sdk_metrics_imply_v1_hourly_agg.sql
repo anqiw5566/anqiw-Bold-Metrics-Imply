@@ -1,12 +1,16 @@
 
 
-CREATE OR REPLACE TABLE `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hourly_090814_agg` AS 
+CREATE OR REPLACE TABLE `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hourly_080914_agg` AS 
 
 WITH base AS(
 SELECT
-m.* EXCEPT(sdk_version,source_game_id,mediation_name,mediation_version,country,iso,developer_id,developer_name,organization_id,core_organization,device_make,device_model,os_version,ett,reason_debug),
-IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), sdk_version, NULL) sdk_version,
+m.* EXCEPT(sdk_version,source_game_id,placement_id,ad_type,mediation_name,mediation_version,country,iso,developer_id,developer_name,organization_id,core_organization,device_make,device_model,os_version,ett,reason_debug),
+    IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), sdk_version, NULL) sdk_version,
     IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), source_game_id, NULL) source_game_id,
+    IF(metric IN ('native_load_started', 'native_show_started'), placement_id, NULL) placement_id,
+    IF(metric IN ('native_load_started', 'native_show_started'), ad_type, NULL) ad_type,
+    IF(metric IN ('ad_viewer_native_show_call', 'ad_viewer_campaign_start'), campaign_type, NULL) AS show_campaign_type,
+    IF(metric IN ('ad_viewer_native_show_call', 'ad_viewer_campaign_start'), content_type, NULL) AS show_content_type,
     IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), mediation_name, NULL) mediation_name,
     IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), mediation_version, NULL) mediation_version,
     IF(metric IN ('native_initialization_started', 'native_load_started', 'native_show_started'), producer, NULL) is_bold,
@@ -54,20 +58,29 @@ IF(metric IN ('native_initialization_started', 'native_load_started', 'native_sh
       WHEN reason_debug LIKE '%Lifecycle Error%' THEN 'Lifecycle Error'
       WHEN reason_debug LIKE '%is not valid JSON%' THEN 'Not valid JSON'
       ELSE reason_debug
-      END AS reason_debug,
+    END AS reason_debug,
   CASE
-  WHEN file_size IS NULL THEN NULL
-  WHEN CAST(file_size AS INT64) < 1024*1024 THEN '0-1MB'
-  WHEN CAST(file_size AS INT64) < 2*1024*1024 THEN '1-2MB'
-  WHEN CAST(file_size AS INT64) < 3*1024*1024 THEN '2-3MB'
-  WHEN CAST(file_size AS INT64) < 4*1024*1024 THEN '3-4MB'
-  WHEN CAST(file_size AS INT64) < 5*1024*1024 THEN '4-5MB'
-  WHEN CAST(file_size AS INT64) < 6*1024*1024 THEN '5-6MB'
-  WHEN CAST(file_size AS INT64) < 7*1024*1024 THEN '6-7MB'
-  WHEN CAST(file_size AS INT64) < 8*1024*1024 THEN '7-8MB'
-  WHEN CAST(file_size AS INT64) < 9*1024*1024 THEN '8-9MB'
-  WHEN CAST(file_size AS INT64) < 10*1024*1024 THEN '9-10MB'
-  ELSE '10MB+' end as file_size_mb,
+      WHEN file_size IS NULL THEN NULL
+      WHEN CAST(file_size AS INT64) < 1024*1024 THEN '0-1MB'
+      WHEN CAST(file_size AS INT64) < 2*1024*1024 THEN '1-2MB'
+      WHEN CAST(file_size AS INT64) < 3*1024*1024 THEN '2-3MB'
+      WHEN CAST(file_size AS INT64) < 4*1024*1024 THEN '3-4MB'
+      WHEN CAST(file_size AS INT64) < 5*1024*1024 THEN '4-5MB'
+      WHEN CAST(file_size AS INT64) < 6*1024*1024 THEN '5-6MB'
+      WHEN CAST(file_size AS INT64) < 7*1024*1024 THEN '6-7MB'
+      WHEN CAST(file_size AS INT64) < 8*1024*1024 THEN '7-8MB'
+      WHEN CAST(file_size AS INT64) < 9*1024*1024 THEN '8-9MB'
+      WHEN CAST(file_size AS INT64) < 10*1024*1024 THEN '9-10MB'
+      ELSE '10MB+' 
+    END AS file_size_mb,
+  CASE 
+      WHEN video_duration_seconds IS NULL THEN NULL
+      WHEN video_duration_seconds <= 15 THEN '0-15s'
+      WHEN video_duration_seconds <= 30 THEN '16-30s'
+      WHEN video_duration_seconds <= 60 THEN '31-60s'
+      WHEN video_duration_seconds <= 120 THEN '61-120s'
+      ELSE '120s+'
+    END AS video_length_bucket,
 
 FROM `unity-data-ads-core-prd.zone_bi_adhoc.sdk_metrics_v1_hourly_080914` m
 )
@@ -76,17 +89,21 @@ SELECT
     submit_hour,
     impression_opportunity_id,
     game_session_id,
-    ANY_VALUE(IF(metric IN ('native_load_started', 'native_show_started'), placement_id, NULL)) AS placement_id,
+    ANY_VALUE(placement_id) AS placement_id,
     ANY_VALUE(ad_format) AS ad_format,
     ANY_VALUE(webview_version) AS webview_version,
-    ANY_VALUE(IF(metric IN ('native_load_started', 'native_show_started'), ad_type, NULL)) AS ad_type,
+    ANY_VALUE(ad_type) AS ad_type,
+    ANY_VALUE(campaign_type) AS campaign_type,
+    ANY_VALUE(content_type) AS content_type,
+    ANY_VALUE(show_campaign_type) AS show_campaign_type,
+    ANY_VALUE(show_content_type) AS show_content_type,
     ANY_VALUE(is_header_bidding) AS is_header_bidding,
     ANY_VALUE(platform) platform,
     ANY_VALUE(sdk_version) sdk_version,
     ANY_VALUE(source_game_id) source_game_id,
     ANY_VALUE(mediation_name) mediation_name,
     ANY_VALUE(mediation_version) mediation_version,
-    ANY_VALUE(is_bold) is_bold,
+    ANY_VALUE(IF(is_bold = 'gwv1','bold',IF(is_bold ='gwl','legacy',null))) is_bold,
     ANY_VALUE(country) country,
     ANY_VALUE(iso_country) iso_country,
     ANY_VALUE(developer_id) developer_id,
@@ -96,32 +113,35 @@ SELECT
     ANY_VALUE(device_make) device_make,
     ANY_VALUE(device_model) device_model,
     ANY_VALUE(os_version) os_version,
-    ANY_VALUE(IF(metric IN ('native_load_started', 'native_show_started'), ett, NULL)) AS ett,
+    ANY_VALUE(ett) AS ett,
+    
 
 --- hb notification ---
-    ANY_VALUE(notif_load_time_auid) notif_load_time_auid,
-    ANY_VALUE(notif_load_time_dsp_id) notif_load_time_dsp_id,
-    ANY_VALUE(notif_load_time_content_type) notif_load_time_content_type,
-    ANY_VALUE(notif_load_time_ad_format) notif_load_time_ad_format,
-    ANY_VALUE(notif_load_time_campaign_id) notif_load_time_campaign_id,
-    ANY_VALUE(notif_load_time_creative_pack_id) notif_load_time_creative_pack_id,
+    ANY_VALUE(notif_load_time_auid) notif_load_auid,
+    ANY_VALUE(notif_load_time_dsp_id) notif_load_dsp_id,
+    ANY_VALUE(notif_load_time_content_type) notif_load_content_type,
+    ANY_VALUE(notif_load_time_ad_format) notif_load_ad_format,
+    ANY_VALUE(notif_load_time_campaign_id) notif_load_campaign_id,
+    ANY_VALUE(notif_load_time_creative_pack_id) notif_load_creative_pack_id,
+    MAX(notif_is_nurl)notif_is_nurl,
+    MAX(notif_is_lurl)notif_is_lurl,
+    MAX(notif_is_burl)notif_is_burl,
 
 --- operative ---
-    ANY_VALUE(op_show_time_ad_type) op_show_time_ad_type,
-    ANY_VALUE(op_show_time_adFormat) op_show_time_adFormat,
-    ANY_VALUE(op_show_time_campaign_id) op_show_time_campaign_id,
-    ANY_VALUE(op_show_time_audience_id) op_show_time_audience_id,
-    ANY_VALUE(op_show_time_creative_pack_id) op_show_time_creative_pack_id,
-    ANY_VALUE(op_show_time_creative_id) op_show_time_creative_id,
+    ANY_VALUE(op_show_time_ad_type) op_show_ad_type,
+    ANY_VALUE(op_show_time_adFormat) op_show_adFormat,
+    ANY_VALUE(op_show_time_campaign_id) op_show_campaign_id,
+    ANY_VALUE(op_show_time_audience_id) op_show_audience_id,
+    ANY_VALUE(op_show_time_creative_pack_id) op_show_creative_pack_id,
+    ANY_VALUE(op_show_time_creative_id) op_show_creative_id,
 
 --- creative ---
     ANY_VALUE(file_size) file_size_byte,
     ANY_VALUE(file_size_mb) file_size_mb,
+    ANY_VALUE(video_duration_seconds) video_duration_seconds,
+    ANY_VALUE(video_length_bucket) video_length_bucket,
 
 --- metrics_v1 ---    
-    ANY_VALUE(IF(metric IN ('ad_viewer_native_show_call', 'ad_viewer_campaign_start'), campaign_type, NULL)) AS sdk_show_campaign_type,
-    ANY_VALUE(IF(metric IN ('ad_viewer_native_show_call', 'ad_viewer_campaign_start'), content_type, NULL)) AS sdk_show_content_type,
-
     ANY_VALUE(IF(metric = 'native_load_failure_time', reason_debug, NULL)) AS load_error_reason_debug,
     ANY_VALUE(IF(metric = 'native_show_failure_time', reason_debug, NULL)) AS show_error_reason_debug,
     ANY_VALUE(IF(metric = 'native_show_failure_time', message, NULL)) AS show_error_message,
