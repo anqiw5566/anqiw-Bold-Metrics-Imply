@@ -43,7 +43,7 @@ AND TIMESTAMP_TRUNC(o._lapio_submit_time, HOUR) = "2025-08-09 14:00:00"
 LEFT JOIN `unity-ai-data-prd.ads_hb_raw.ads_hb_notification_enriched_v3` n
 ON n.body.notification.exchangeAuctionId = o.auction_id 
 AND DATE(n.submit_date) = "2025-08-09"
-AND TIMESTAMP_TRUNC(context.pipeline_context.submit_time, HOUR) = "2025-08-09 14:00:00"
+-- AND TIMESTAMP_TRUNC(context.pipeline_context.submit_time, HOUR) = "2025-08-09 14:00:00"
 
 LEFT JOIN `unity-data-ads-prd.serversidemeta.operative_event_v1` op
 ON o.auction_id = op.auid
