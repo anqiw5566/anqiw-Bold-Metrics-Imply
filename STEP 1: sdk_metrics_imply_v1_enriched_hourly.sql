@@ -9,9 +9,9 @@ n.body.request.bid.contentType AS notif_load_content_type,
 n.body.request.placement.adFormat AS notif_load_ad_format,
 n.body.request.bid.campaignID AS notif_load_campaign_id,
 n.body.request.bid.creativeID AS notif_load_creative_pack_id,
-IF(n.body.notification.type = 'nurl',1,0) AS notif_is_nurl,
-IF(n.body.notification.type = 'lurl',1,0) AS notif_is_lurl,
-IF(n.body.notification.type = 'burl',1,0) AS notif_is_burl,
+-- MAX(n.body.notification.type) AS notif_type,
+-- IF(n.body.notification.type = 'lurl',1,0) AS notif_is_lurl,
+-- IF(n.body.notification.type = 'burl',1,0) AS notif_is_burl,
 
 --- operative ---
 op.cinfo.adtype AS op_show_ad_type,
@@ -23,14 +23,14 @@ op.cinfo.cpackid AS op_show_creative_pack_id,
 op.cinfo.ucid AS op_show_creative_id,
 
 --- creative ---
-JSON_EXTRACT_SCALAR(file_metadata, '$.fileSize') file_size,
-c.duration AS video_duration_seconds,
+JSON_EXTRACT_SCALAR(original_files, '$.fileSize')file_size,
+JSON_EXTRACT_SCALAR(original_files, '$.metadata.duration')video_duration_seconds,
 
 --- developers & games ---
-dev.developer_id,
-dev.name AS developer_name,
-game.organization_id,
-game.core_organization
+dev.developer_id developer_id,
+dev.name developer_name,
+game.organization_id organization_id,
+game.core_organization core_organization
 
 FROM `unity-data-ads-core-prd.zone_product_reporting_unity.sdk_metrics_raw_deduped_parsed` m
 
@@ -50,7 +50,9 @@ ON o.auction_id = op.auid
 -- AND DATE(op._lapio_submit_time) = "2025-08-09"
 AND TIMESTAMP_TRUNC(op._lapio_submit_time, HOUR) = "2025-08-09 14:00:00"
 
-LEFT JOIN `unity-data-ads-core-prd.ads_dimension_data.creatives` c
+LEFT JOIN 
+(SELECT creative_id,original_files FROM `unity-data-ads-core-prd.ads_dimension_data.creatives`
+CROSS JOIN UNNEST(JSON_QUERY_ARRAY(original_files)) AS original_files)c
 ON op.cinfo.ucid = c.creative_id
 
 LEFT JOIN `unity-data-ads-core-prd.ads_dimension_data.game_profiles` game
