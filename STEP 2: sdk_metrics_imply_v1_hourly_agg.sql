@@ -219,8 +219,8 @@ SELECT
     MAX(IF(metric = 'native_show_started_ad_viewer', 1, 0)) AS native_show_started_ad_viewer,
     MAX(IF(metric = 'native_show_wv_started', 1, 0)) AS native_show_wv_started,
 
-    SUM(IF(metric = 'native_load_cache_success_time', 1, 0)) AS native_load_cache_success_time_count,
-    SUM(IF(metric = 'native_load_cache_failure_time', 1, 0)) AS native_load_cache_failure_time_count,
+    -- SUM(IF(metric = 'native_load_cache_success_time', 1, 0)) AS native_load_cache_success_time_count,
+    -- SUM(IF(metric = 'native_load_cache_failure_time', 1, 0)) AS native_load_cache_failure_time_count,
     MAX(IF(metric = 'native_webview_terminated', 1, 0)) AS webview_terminated,
 FROM (select * from base where producer = 'gwv1')
 WHERE 1=1
@@ -311,8 +311,8 @@ SELECT
     SUM(IF(metric = 'native_show_started_ad_viewer', 1, 0)) AS native_show_started_ad_viewer,
     SUM(IF(metric = 'native_show_wv_started', 1, 0)) AS native_show_wv_started,
 
-    SUM(IF(metric = 'native_load_cache_success_time', 1, 0)) AS native_load_cache_success_time_count,
-    SUM(IF(metric = 'native_load_cache_failure_time', 1, 0)) AS native_load_cache_failure_time_count,
+    -- SUM(IF(metric = 'native_load_cache_success_time', 1, 0)) AS native_load_cache_success_time_count,
+    -- SUM(IF(metric = 'native_load_cache_failure_time', 1, 0)) AS native_load_cache_failure_time_count,
     SUM(IF(metric = 'native_webview_terminated', 1, 0)) AS webview_terminated,
 
 FROM (select * from base where producer = 'gwl')
